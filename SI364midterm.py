@@ -13,9 +13,11 @@
 ## Import statements
 # Import statements
 import os
+import requests
 from flask import Flask, render_template, session, redirect, url_for, flash, request
 from flask_script import Shell, Manager
 from flask_wtf import FlaskForm
+import simplejson as json
 from wtforms import StringField, SubmitField, ValidationError # Note that you may need to import more here! Check out examples that do what you want to figure out what.
 from wtforms.validators import Required, Length # Here, too
 from flask_sqlalchemy import SQLAlchemy
@@ -45,9 +47,6 @@ db = SQLAlchemy(app)
 ######################################
 
 
-
-
-
 ##################
 ##### MODELS #####
 ##################
@@ -55,7 +54,7 @@ db = SQLAlchemy(app)
 class Tip(db.Model):
     __tablename__ = "tips"
     ID = db.Column(db.Integer,primary_key=True)
-    content = db.Column(db.String(64))
+    content = db.Column(db.String(256))
     title = db.Column(db.String(64))
     breed_id = db.Column(db.Integer, db.ForeignKey('breed.ID'))
 
@@ -87,7 +86,7 @@ class Breed(db.Model):
 class TipForm(FlaskForm):
     breed = StringField('Enter the breed of your dog:', validators=[Required(),Length(1,280)])
     title = StringField('Enter the title of your tip(no "@$%#*"):', validators=[Required(),Length(1,64)])
-    content = StringField('Enter your tip here: (min 100 characters & max 1000 characters):', validators=[Required(),Length(100,1000)])
+    content = StringField('Enter your tip here: (min 10 characters & max 1000 characters):', validators=[Required(),Length(10,1000)])
     submit = SubmitField('Submit')
  
 #######################
@@ -122,20 +121,26 @@ def addTip():
             db.session.add(b)
             db.session.commit()
 
-        t = Tip.query.filter_by(content=content,breeed_id=b.ID).first()
+        t = Tip.query.filter_by(title=title,breed_id=b.ID).first()
         if t:
             print("Tip exsits")
             return redirect(url_for('see_all_tips'))
         else:
-            t = Tweet(content=content,breed_id=b.ID)
+            t = Tip(title=title,content=content,breed_id=b.ID)
             db.session.add(t)
             db.session.commit()
-            return redirect(url_for('index'))
+            response = requests.get("https://dog.ceo/api/breed/" + breed + "/images")
+            results = json.loads(response.text)
+            if results['status'] == 'success':
+                image = results['message'][0]
+                return render_template("success.html", tip = content, breed = breed, image = image)
+            else: 
+                flash("Please enter a valid dog breed!")
     
     errors = [v for v in form.errors.values()]
     if len(errors) > 0:
         flash("!!!! ERRORS IN FORM SUBMISSION - " + str(errors))
-    num_tweets = len(Tip.query.all())
+    num_tips = len(Tip.query.all())
     
     return render_template("index.html", form = form)
 
@@ -146,9 +151,9 @@ def all_names():
 
 @app.route('/all_tips')
 def see_all_tips():
-    # tips = Tip.query.all()
-    Breed = [(b, Breed.query.filter_by(ID=b.id).first()) for b in breeds]
-    return render_template('all_tips.html', tweets=users)
+    tips = Tip.query.all()
+    Breed = [(t, Breed.query.filter_by(ID=t.ID).first()) for t in Tips]
+    return render_template('all_tips.html', tips=breed)
 
 @app.route('/all_breeds')
 def see_all_breeds():

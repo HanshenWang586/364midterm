@@ -6,6 +6,7 @@
 
 <div>
 <form method="POST" action="http://localhost:5000/addTip">
+    {{ form.hidden_tag() }}
     {{ form.breed.label }}{{ form.breed() }}<br>
     {{ form.title.label }}{{ form.title() }}<br>
     {{ form.content.label }}{{ form.content() }}<br>
