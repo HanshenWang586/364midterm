@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+{% for t in tips %}
+    <li>{{ t[0].text }}<br><i>posted by</i> <strong>@{{ t[1].username }}</strong></li><br><br>
+{% endfor %}
+</ul>
+
+{% if not tips %}
+    There are no saved tips to show.
+{% endif %}
+
+
+<div>
+{% for message in get_flashed_messages() %}
+    <strong>*** {{ message }} ***</strong>
+{% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2> Welcome to DogTips! </h2>
+<h3>Here you can post tips to raise a certain type of a breed and attach picture of the breed while with your tip.</h3>
+
+<div>
+<form method="POST" action="http://localhost:5000/addTip">
+    {{ form.breed.label }}{{ form.breed() }}<br>
+    {{ form.title.label }}{{ form.title() }}<br>
+    {{ form.content.label }}{{ form.content() }}<br>
+    <br>
+	{{ form.submit() }}
+</form>
+</div>
+
+<br>
+<strong><p>Note: any content you post here will become public.</i></p><br>
+
+<div>
+{% for message in get_flashed_messages() %}
+    <strong>{{ message }}</strong>
+{% endfor %}
+</div>
+
+{% endblock %}
