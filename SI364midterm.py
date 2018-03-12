@@ -57,6 +57,7 @@ class Tip(db.Model):
     content = db.Column(db.String(256))
     title = db.Column(db.String(64))
     breed_id = db.Column(db.Integer, db.ForeignKey('breed.ID'))
+    user_id = db.Column(db.Integer, db.ForeignKey('name.ID'))
 
     def __repr__(self):
         return "{Tip %r} (ID: {%a})".format(self.content, self.ID)
@@ -69,7 +70,13 @@ class Breed(db.Model):
     def __repr__(self):
         return "{breedName %r} | ID: {%a})".format(self.breedName, self.ID)
 
-
+class Name(db.Model):
+    __tablename__ = "name"
+    ID = db.Column(db.Integer,primary_key=True)
+    username = db.Column(db.String(64))
+    
+    def __repr__(self):
+        return "{username %r} | ID: {%a})".format(self.username, self.ID)   
 
 ###################
 ###### FORMS ######
@@ -97,13 +104,6 @@ class TipForm(FlaskForm):
 def index():
     form = TipForm() # User should be able to enter name after name and each one will be saved, even if it's a duplicate! Sends data with GET
     num_tips = len(Tip.query.all())
-    # if form.validate_on_submit():
-    #     breed = form.breed.data
-    #     title = form.title.data
-    #     content = form.content.data
-    #     db.session.add(newname)
-    #     db.session.commit()
-    #     return redirect(url_for('all_names'))
     return render_template('index.html',form=form)
 
 @app.route('/addTip', methods=['GET', 'POST'])
@@ -152,13 +152,18 @@ def all_names():
 @app.route('/all_tips')
 def see_all_tips():
     tips = Tip.query.all()
-    Breed = [(t, Breed.query.filter_by(ID=t.ID).first()) for t in Tips]
+    breed = [(t, Breed.query.filter_by(ID=t.ID).first()) for t in tips]
     return render_template('all_tips.html', tips=breed)
 
 @app.route('/all_breeds')
 def see_all_breeds():
-    response = requests.get('https://dog.ceo/api/breeds/list/all')
-    return response.text
+    breeds = Breed.query.all()    
+    return render_template('all_breeds.html', breeds=breeds)
+
+# @app.route('/all_breeds')
+# def see_all_breeds():
+#     breeds = Breed.query.all()    
+#     return render_template('all_tips.html', breeds=breeds)
 
 @app.errorhandler(404)
 def page_not_found(e):

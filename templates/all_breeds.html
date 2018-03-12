@@ -1,14 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<p> There have been tips uploaded for the following breed:</p>
+
 <ul>
-{% for nm in users %}
-  <li>{{ nm.username }} -- <i>{{ nm.display_name }}</i></li><br>
+{% for b in breeds %}
+  <li>{{ b.breedName }}<i></i></li><br>
 {% endfor %}
 </ul>
 
-{% if not users %}
-    There are no users to show.
+{% if not breeds %}
+    There are no breed to show.
 {% endif %}
 
 {% endblock %}

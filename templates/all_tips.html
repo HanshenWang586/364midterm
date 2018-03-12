@@ -3,7 +3,7 @@
 {% block content %}
 <ul>
 {% for t in tips %}
-    <li>{{ t[0].text }}<br><i>posted by</i> <strong>@{{ t[1].username }}</strong></li><br><br>
+    <li><strong>{{ t[1].breedName }}: {{ t[0].title }}<br></strong><i></i> {{ t[0].content }}</li><br><br>
 {% endfor %}
 </ul>
 
