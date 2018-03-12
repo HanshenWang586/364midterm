@@ -57,7 +57,6 @@ class Tip(db.Model):
     content = db.Column(db.String(256))
     title = db.Column(db.String(64))
     breed_id = db.Column(db.Integer, db.ForeignKey('breed.ID'))
-    user_id = db.Column(db.Integer, db.ForeignKey('name.ID'))
 
     def __repr__(self):
         return "{Tip %r} (ID: {%a})".format(self.content, self.ID)
@@ -82,17 +81,16 @@ class Name(db.Model):
 ###### FORMS ######
 ###################
 
-# def validate_username(form,field):
-#     if str(field.data)[0] == '@':
-#         raise ValidationError("Error:User name must not start with an '@'")
-
-# def validate_displayName(form,field):
-#     if str(field.data).count(' ') < 1 or str(field.data) == ' ':
-#         raise ValidationError("Error: Display Name must be at least two words") 
+def validate_title(form,field):
+    title = str(field.data)
+    # .contains(,'$','%','#','*')
+    if '@' in title:
+        raise ValidationError("Title must not contain @$%#*")
 
 class TipForm(FlaskForm):
+    username = StringField('Enter your name:', validators=[Required(),Length(1,280)])
     breed = StringField('Enter the breed of your dog:', validators=[Required(),Length(1,280)])
-    title = StringField('Enter the title of your tip(no "@$%#*"):', validators=[Required(),Length(1,64)])
+    title = StringField('Enter the title of your tip(no "@$%#*"):', validators=[Required(),Length(1,64),validate_title])
     content = StringField('Enter your tip here: (min 10 characters & max 1000 characters):', validators=[Required(),Length(10,1000)])
     submit = SubmitField('Submit')
  
@@ -113,12 +111,22 @@ def addTip():
         breed = form.breed.data
         title = form.title.data
         content = form.content.data
+        username = form.username.data
         b = Breed.query.filter_by(breedName=breed).first()
         if b:
             print("Breed exists")
         else:
             b = Breed(breedName=breed)
             db.session.add(b)
+            db.session.commit()
+        
+        n = Name.query.filter_by(username=username).first()
+        
+        if n:
+            print ("Name exists")
+        else:
+            n = Name(username=username)
+            db.session.add(n)
             db.session.commit()
 
         t = Tip.query.filter_by(title=title,breed_id=b.ID).first()
@@ -144,10 +152,10 @@ def addTip():
     
     return render_template("index.html", form = form)
 
-@app.route('/names')
-def all_names():
-    # names = Name.query.all()
-    return render_template('index.html',names=names)
+@app.route('/all_names')
+def see_all_names():
+    names = Name.query.all()
+    return render_template('all_names.html',names=names)
 
 @app.route('/all_tips')
 def see_all_tips():
@@ -160,10 +168,6 @@ def see_all_breeds():
     breeds = Breed.query.all()    
     return render_template('all_breeds.html', breeds=breeds)
 
-# @app.route('/all_breeds')
-# def see_all_breeds():
-#     breeds = Breed.query.all()    
-#     return render_template('all_tips.html', breeds=breeds)
 
 @app.errorhandler(404)
 def page_not_found(e):
