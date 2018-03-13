@@ -41,6 +41,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 manager = Manager(app)
 db = SQLAlchemy(app)
 
+migrate = Migrate(app, db) # For database use/updating
+manager.add_command('db', MigrateCommand) # Add migrate command to manager
 
 ######################################
 ######## HELPER FXNS (If any) ########
@@ -57,7 +59,7 @@ class Tip(db.Model):
     content = db.Column(db.String(256))
     title = db.Column(db.String(64))
     breed_id = db.Column(db.Integer, db.ForeignKey('breed.ID'))
-
+    name_id = db.Column(db.Integer, db.ForeignKey('name.ID'))
     def __repr__(self):
         return "{Tip %r} (ID: {%a})".format(self.content, self.ID)
 
@@ -84,7 +86,7 @@ class Name(db.Model):
 def validate_title(form,field):
     title = str(field.data)
     # .contains(,'$','%','#','*')
-    if '@' in title:
+    if '@' in title or '$' in title or '%' in title or '#' in title or '*' in title:
         raise ValidationError("Title must not contain @$%#*")
 
 class TipForm(FlaskForm):
@@ -129,12 +131,12 @@ def addTip():
             db.session.add(n)
             db.session.commit()
 
-        t = Tip.query.filter_by(title=title,breed_id=b.ID).first()
+        t = Tip.query.filter_by(title=title,breed_id=b.ID,name_id=n.ID).first()
         if t:
             print("Tip exsits")
             return redirect(url_for('see_all_tips'))
         else:
-            t = Tip(title=title,content=content,breed_id=b.ID)
+            t = Tip(title=title,content=content,breed_id=b.ID,name_id=n.ID)
             db.session.add(t)
             db.session.commit()
             response = requests.get("https://dog.ceo/api/breed/" + breed + "/images")
