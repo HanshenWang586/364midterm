@@ -3,6 +3,7 @@
 # Hanshen Wang
 # 40602121
 # Mar 9
+# TESTESTSET
 
 # This is an app where users can post and view thier tips on feeding a certain dog breed. They can also view pictures of the breed by searching the breed name.
 
@@ -30,9 +31,10 @@ app = Flask(__name__)
 app.debug = True
 app.use_reloader = True
 app.config['SECRET_KEY'] = 'hanshensscretepassword'
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/dogTips"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL') or "postgresql://localhost/songs_data"
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['HEROKU_ON'] = os.environ.get('HEROKU')
 
 ## All app.config values
 
@@ -169,7 +171,6 @@ def see_all_tips():
 def see_all_breeds():
     breeds = Breed.query.all()    
     return render_template('all_breeds.html', breeds=breeds)
-
 
 @app.errorhandler(404)
 def page_not_found(e):
